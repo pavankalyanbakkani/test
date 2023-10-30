@@ -13,15 +13,21 @@ pipeline {
         }
     }
     
-    post {
-        always {
-            echo 'Post-build action executed!'
-        }
+     post {
         success {
-            echo 'Build was a success!'
-        }
-        failure {
-            echo 'Build failed!'
+            script {
+                def commitSHA = 'YOUR_SHA'  // You'd typically fetch this dynamically
+                def response = httpRequest url: 'https://app.sleuth.io/api/1/deployments/testtoken/testing/register_deploy',
+                                           httpMode: 'POST',
+                                           contentType: 'APPLICATION_JSON',
+                                           headers: [
+                                                [name: 'Authorization', value: 'Bearer YOUR_ACTUAL_ORG_REGISTER_DEPLOY_ACCESS_TOKEN']
+                                           ],
+                                           validResponseCodes: '100:599',
+                                           requestBody: "{\"environment\": \"production\", \"sha\": \"${commitSHA}\"}"
+
+                echo "Response from Sleuth: ${response}"
+            }
         }
     }
 }
